@@ -1,7 +1,7 @@
 # Cross compiler prefix
 CROSS_COMPILE = arm-none-eabi-
 CC  = $(CROSS_COMPILE)gcc
-LD  = $(CROSS_COMPILE)ld
+LD  = $(CROSS_COMPILE)gcc
 OBJCOPY = $(CROSS_COMPILE)objcopy
 
 # Source files
@@ -17,9 +17,11 @@ C_OBJ   = $(OUT_DIR)/kernel.o
 ELF     = $(OUT_DIR)/kernel.elf
 BIN     = $(OUT_DIR)/kernel.img
 
-# Compiler and linker flags
+# Compiler flags (no -lgcc here)
 CFLAGS = -Wall -O2 -ffreestanding -nostdlib -nostartfiles -mcpu=arm1176jzf-s
-LDFLAGS = -T linker.ld
+
+# Linker flags (include linker script and libgcc)
+LDFLAGS = -T link.ld -lgcc
 
 # Ensure output directory exists
 $(shell mkdir -p $(OUT_DIR))
@@ -36,7 +38,7 @@ $(C_OBJ): $(C_SRC)
 
 # Link the ELF
 $(ELF): $(ASM_OBJ) $(C_OBJ)
-	$(LD) $(LDFLAGS) -o $@ $^
+	$(LD) $(CFLAGS) -o $@ $^ $(LDFLAGS) -lgcc
 
 # Convert ELF to binary image
 $(BIN): $(ELF)
